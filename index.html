@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>jQuery </title>
+    <!-- jQuery (latest minified) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: #c4e0c4;   /* soft light green background */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 16px;
+        }
+        /* SQUARE CARD: width = height approximately (based on content, but forces square min) */
+        .math-card {
+            background: #f2fff0;     /* very light mint */
+            width: 560px;
+            max-width: 90vw;
+            /* make it square-ish by forcing equal height using padding/presentation 
+               but we let content define height, still we want square perception: set aspect-ratio */
+            aspect-ratio: 1 / 1;      /* forces a perfect square container */
+            border-radius: 32px;      /* still slightly rounded, but square outline */
+            padding: 2rem 2rem 1.8rem 2rem;
+            box-shadow: 0 20px 30px -10px #2f4d2f80;
+            border: 2px solid #a0d0a0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* space out header, main, footer */
+        }
+
+        /* inner content uses flex column to fill square */
+        .content-main {
+            flex: 1 0 auto;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 500;
+            margin: 0 0 0.5rem 0;
+            color: #1d3b1d;        /* deep forest green */
+            letter-spacing: -0.5px;
+            border-bottom: 2px solid #b8e0b8;
+            padding-bottom: 0.4rem;
+        }
+        .sub {
+            color: #2f6b2f;         /* medium green */
+            margin-top: -0.2rem;
+            margin-bottom: 1.2rem;
+            font-style: italic;
+            font-size: 0.95rem;
+        }
+
+        .first-number-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .label-badge {
+            background: #b8e0b8;    /* light green badge */
+            padding: 8px 16px;
+            border-radius: 60px;
+            font-weight: 500;
+            color: #1d3b1d;
+            font-size: 1.2rem;
+            white-space: nowrap;
+        }
+        .number-input {
+            border: 2px solid #9fcc9f;
+            border-radius: 60px;
+            padding: 12px 20px;
+            font-size: 1.3rem;
+            width: 140px;
+            text-align: center;
+            background: #ffffff;
+            transition: 0.15s;
+            font-weight: 500;
+            outline: none;
+        }
+        .number-input:focus {
+            border-color: #2b6b2b;
+            box-shadow: 0 0 0 3px rgba(60, 120, 60, 0.25);
+        }
+
+        /* DROP-DOWN for operator (instead of oblong sign row) */
+        .operator-dropdown-area {
+            margin: 20px 0 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .dropdown-label {
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: #1d3b1d;
+            background: #d2eed2;
+            padding: 8px 20px;
+            border-radius: 60px;
+        }
+        #opSelect {
+            background: #ffffff;
+            border: 2px solid #7fb07f;
+            border-radius: 60px;
+            padding: 12px 28px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1d421d;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%231d421d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 20px;
+            min-width: 120px;
+            text-align: center;
+        }
+        #opSelect:hover {
+            border-color: #256725;
+            background-color: #ecf9ec;
+        }
+        #opSelect:focus {
+            border-color: #1b551b;
+            box-shadow: 0 0 0 3px #9fcf9f;
+        }
+
+        .solve-btn {
+            background: #256725;    /* deeper green */
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 600;
+            padding: 14px 36px;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 8px 14px -8px #1b4c1b;
+            letter-spacing: 0.5px;
+            border: 1px solid #3c8a3c;
+            margin: 10px 0 16px 0;
+            width: fit-content;
+        }
+        .solve-btn:hover {
+            background: #2e802e;
+            transform: scale(1.02);
+        }
+        .solve-btn:active {
+            background: #1d551d;
+            transform: scale(0.98);
+            box-shadow: 0 4px 8px -4px #0f2a0f;
+        }
+
+        /* Second Number line with check mark */
+        .second-line {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin: 12px 0 20px 0;
+        }
+        .second-number-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #d2eed2;    /* light green area */
+            padding: 4px 20px 4px 16px;
+            border-radius: 60px;
+            border: 2px solid #9fcc9f;
+        }
+        .check-mark {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1d3b1d;
+            margin-right: 4px;
+        }
+        .second-label {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #1d3b1d;
+            white-space: nowrap;
+        }
+
+        /* result area */
+        .result-area {
+            background: #c8e6c8;    /* light green result panel */
+            border-radius: 60px;
+            padding: 18px 28px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            border: 2px solid #a0d0a0;
+            box-shadow: inset 0 2px 5px rgba(0,40,0,0.05);
+        }
+        .result-prefix {
+            font-size: 1.6rem;
+            font-weight: 500;
+            color: #1c451c;
+        }
+        .result-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: #ffffffd9;
+            padding: 6px 32px;
+            border-radius: 60px;
+            min-width: 120px;
+            text-align: center;
+            color: #154015;
+            border: 1px solid #83b183;
+            box-shadow: 0 2px 4px rgba(0,30,0,0.1);
+            letter-spacing: 1px;
+        }
+        .placeholder-text {
+            color: #6f8f6f;
+            font-weight: 400;
+            font-size: 1.4rem;
+        }
+
+        hr {
+            border: 1px solid #b8dcb8;
+            margin: 12px 0 8px 0;
+        }
+        .note {
+            color: #4f7a4f;
+            font-size: 0.9rem;
+            text-align: right;
+            margin-top: 6px;
+        }
+
+        /* make sure everything fits nicely in square */
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="math-card">
+        <!-- header area (top) -->
+        <div>
+            <h1>Math in jQuery</h1>
+            <div class="sub"></div>
+        </div>
+
+        <!-- main content area (flexible) -->
+        <div class="content-main">
+            <!-- First Number -->
+            <div class="first-number-group">
+                <span class="label-badge">First Number:</span>
+                <input type="number" id="firstNum" class="number-input" value="5" step="any">
+            </div>
+
+            <!-- D R O P D O W N  instead of operator row (oblong sign replaced) -->
+            <div class="operator-dropdown-area">
+                <span class="dropdown-label">Operator</span>
+                <select id="opSelect">
+                    <option value="+" selected>+ </option>
+                    <option value="-">− </option>
+                    <option value="*">× </option>
+                    <option value="/">÷ </option>
+                </select>
+            </div>
+
+            <!-- Second Number line with check mark (the operator sign will be shown via dropdown, but we keep check) -->
+            <div class="second-line">
+                <div class="second-number-area">
+                    <span class="check-mark"></span>
+                    <span class="second-label">Second Number:</span>
+                    <input type="number" id="secondNum" class="number-input" style="width: 130px;" value="3" step="any">
+                </div>
+            </div>
+
+            <!-- Solve button -->
+            <div style="display: flex; justify-content: flex-start;">
+                <button id="solveBtn" class="solve-btn">Solve</button>
+            </div>
+
+            <!-- Result area (initially empty) -->
+            <div class="result-area" id="resultContainer">
+                <span class="result-prefix">Result:</span>
+                <span id="resultDisplay" class="result-value placeholder-text"></span>
+            </div>
+        </div>
+
+        <!-- footer line (note) -->
+        <div>
+            <hr>
+            <div class="note"></div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function(){
+
+            // ---------- dropdown reads selected operator ----------
+            const $opSelect = $('#opSelect');
+
+            // initial result empty (placeholder)
+            $('#resultDisplay').text('').css('color', '#6f8f6f');
+
+            // ---------- SOLVE BUTTON ----------
+            $('#solveBtn').on('click', function() {
+                const raw1 = $('#firstNum').val();
+                const raw2 = $('#secondNum').val();
+                const num1 = parseFloat(raw1);
+                const num2 = parseFloat(raw2);
+
+                // get operator from dropdown
+                const operator = $opSelect.val();   // '+', '-', '*', '/'
+
+                // if either input invalid, show '?'
+                if (isNaN(num1) || isNaN(num2)) {
+                    $('#resultDisplay').text('?').css('color', '#1d3b1d');
+                    return;
+                }
+
+                let result;
+                switch (operator) {
+                    case '+': result = num1 + num2; break;
+                    case '-': result = num1 - num2; break;
+                    case '*': result = num1 * num2; break;
+                    case '/': result = num2 !== 0 ? num1 / num2 : '∞'; break;
+                    default: result = '?';
+                }
+
+                // tidy up decimal representation
+                if (typeof result === 'number') {
+                    if (!Number.isInteger(result)) {
+                        result = parseFloat(result.toFixed(6));
+                    }
+                }
+
+                $('#resultDisplay').text(result).css('color', '#1d3b1d'); // deep green result
+            });
+
+            // (optional) you can also pre-populate an operator badge, but dropdown replaces it.
+            // we keep the check mark as design element. no extra badge needed.
+        });
+    </script>
+</body>
+</html>
